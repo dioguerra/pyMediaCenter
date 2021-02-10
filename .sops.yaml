@@ -1,0 +1,4 @@
+creation_rules:
+  - pgp: >-
+      257DACDD98A2CC727CED51D2644918BD6078344A
+    encrypted_regex: '^(.*[Aa]uth)|(.*[Pp]assword)|(.*[Pp]asswd)|(.*[Kk]ey)|(.*[Ss]ecret)|(transmissionConfig)$'

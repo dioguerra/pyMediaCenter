@@ -1,0 +1,278 @@
+mediaCenter:
+  auth: SOME_BASE64_ENCODED_AUTH_STRING
+
+ingress-nginx:
+  enabled: true
+  controller:
+    containerPort:
+      http: 32080
+      https: 32443
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
+    hostPort:
+     enabled: true
+     ports:
+       http: 32080
+       https: 32443
+    kind: DaemonSet
+    service:
+      enabled: true
+      type: NodePort
+      nodePorts:
+        http: 30080
+        https: 30443
+
+plex:
+  enabled: true
+  fullnameOverride: plex
+  strategy:
+    type: Recreate
+  env:
+    TZ: GMT
+    UMASK_SET: 022
+    PUID: 1001
+    PGID: 1001
+    PLEX_CLAIM: CLAIM-XXXXXXXXXXXXXXXXXXXX
+    PLEX_PREFERENCE_1: "FriendlyName=Plex"
+  image:
+    repository: ghcr.io/k8s-at-home/plex
+    tag: v1.24.3.5033-757abe6b4@sha256:036365aa9e869d653ecb6773180718fe63d102fe93e22a594e42ac985cb6c1b8
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/issuer: "letsencrypt"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      hosts:
+      - host: your.dns.com
+        paths:
+        - path: "/"
+      tls:
+      - secretName: media-center-tls
+        hosts:
+        - your.dns.net
+  securityContext:
+    runAsGroup: 1001
+    runAsUser: 1001
+  persistence:
+    config:
+      enabled: true
+      existingClaim: plex-config
+      skipuninstall: true
+    series:
+      enabled: true
+      type: pvc
+      mountPath: /series
+      existingClaim: series
+    movies:
+      enabled: true
+      type: pvc
+      mountPath: /movies
+      existingClaim: movies    
+
+jackett:
+  enabled: true
+  fullnameOverride: jackett
+  strategy:
+    type: Recreate
+  env:
+    TZ: GMT
+    UMASK: 022
+    PUID: 1001
+    PGID: 1001
+  image:
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/issuer: "letsencrypt"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: nginx-basic-auth
+      hosts:
+      - host: your.dns.com
+        paths:
+        - path: "/jackett"
+      tls:
+      - secretName: media-center-tls
+        hosts:
+        - your.dns.com
+  securityContext:
+    runAsGroup: 1001
+    runAsUser: 1001
+  persistence:
+    config:
+      enabled: true
+      existingClaim: jackett-config
+      skipuninstall: true
+    torrentblackhole:
+      enabled: true
+      existingClaim: watch
+
+radarr:
+  enabled: true
+  fullnameOverride: radarr
+  strategy:
+    type: Recreate
+  env:
+    TZ: GMT
+    UMASK: 022
+    PUID: 1001
+    PGID: 1001
+  image:
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/issuer: "letsencrypt"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: nginx-basic-auth
+      hosts:
+      - host: your.dns.com
+        paths:
+        - path: "/radarr"
+      tls:
+      - secretName: media-center-tls
+        hosts:
+        - your.dns.com
+  securityContext:
+    runAsGroup: 1001
+    runAsUser: 1001
+  persistence:
+    config:
+      enabled: true
+      existingClaim: radarr-config
+      skipuninstall: true
+    media:
+      enabled: true
+      existingClaim: movies
+      mountPath: /media
+    downloads:
+      enabled: true
+      existingClaim: downloads
+      mountPath: /downloads
+
+sonarr:
+  enabled: true
+  fullnameOverride: sonarr
+  strategy:
+    type: Recreate
+  env:
+    TZ: GMT
+    UMASK: 022
+    PUID: 1001
+    PGID: 1001
+  image:
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/issuer: "letsencrypt"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: nginx-basic-auth
+      hosts:
+      - host: your.dns.com
+        paths:
+        - path: "/sonarr"
+      tls:
+      - secretName: media-center-tls
+        hosts:
+        - your.dns.com
+  securityContext:
+    runAsGroup: 1001
+    runAsUser: 1001
+  persistence:
+    config:
+      enabled: true
+      existingClaim: sonarr-config
+      skipuninstall: true
+    media:
+      enabled: true
+      existingClaim: series
+      mountPath: /media
+    downloads:
+      enabled: true
+      existingClaim: downloads
+      mountPath: /downloads
+
+transmission:
+  enabled: true
+  fullnameOverride: transmission
+  strategy:
+    type: Recreate
+  env:
+    TZ: GMT
+    UMASK: 022
+    PUID: 1001
+    PGID: 1001
+    TRANSMISSION_DOWNLOAD_DIR: "/downloads"
+    TRANSMISSION_INCOMPLETE_DIR_ENABLED: false
+    TRANSMISSION_WATCH_DIR: "/watch"
+    TRANSMISSION_WATCH_DIR_ENABLED: true
+    TRANSMISSION_WEB_HOME: "/web"
+    TRANSMISSION_QUEUE_STALLED_ENABLED: true
+    TRANSMISSION_QUEUE_STALLED_MINUTES: 30
+    TRANSMISSION_RATIO_LIMIT: 2
+    TRANSMISSION_RATIO_LIMIT_ENABLED: true
+    TRANSMISSION_RENAME_PARTIAL_FILES: true
+    TRANSMISSION_SCRAPE_PAUSED_TORRENTS_ENABLED: true
+  image:
+    pullPolicy: Always
+  serviceAccount:
+    create: true
+  ingress:
+    main:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/issuer: "letsencrypt"
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/auth-type: basic
+        nginx.ingress.kubernetes.io/auth-secret: nginx-basic-auth
+        #nginx.ingress.kubernetes.io/proxy-pass-header: X-Transmission-Session-Id
+        #nginx.org/proxy-pass-headers: X-Transmission-Session-Id
+      hosts:
+      - host: your.dns.com
+        paths:
+        - path: "/transmission"
+      tls:
+      - secretName: media-center-tls
+        hosts:
+        - your.dns.com
+  securityContext:
+    runAsGroup: 1001
+    runAsUser: 1001
+  persistence:
+    config:
+      enabled: true
+      existingClaim: transmission-config
+      skipuninstall: true
+    downloads:
+      enabled: true
+      existingClaim: downloads
+    watch:
+      enabled: true
+      existingClaim: watch

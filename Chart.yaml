@@ -1,0 +1,30 @@
+apiVersion: v2
+description: A chart to install a RPI media center
+name: pyMediaCenter
+version: 0.1.0
+appVersion: amd64-latest
+dependencies:
+- name: ingress-nginx
+  version: 4.0.6
+  repository: https://kubernetes.github.io/ingress-nginx
+  condition: nginx-ingress.enabled
+- name: plex
+  version: 6.0.2
+  repository: https://k8s-at-home.com/charts/
+  condition: plex.enabled
+- name: jackett
+  repository: https://k8s-at-home.com/charts/
+  version: 11.1.1
+  condition: jackett.enabled
+- name: radarr
+  repository: https://k8s-at-home.com/charts/
+  version: 15.0.3
+  condition: radarr.enabled
+- name: sonarr
+  version: 15.1.0
+  repository: https://k8s-at-home.com/charts/
+  condition: sonarr.enabled
+- name: transmission
+  version: 8.0.1
+  repository: https://k8s-at-home.com/charts/
+  condition: transmission.enabled
