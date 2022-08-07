@@ -9,19 +9,19 @@ dependencies:
   repository: https://kubernetes.github.io/ingress-nginx
   condition: nginx-ingress.enabled
 - name: plex
-  version: 6.0.2
+  version: 6.3.2
   repository: https://k8s-at-home.com/charts/
   condition: plex.enabled
 - name: jackett
   repository: https://k8s-at-home.com/charts/
-  version: 11.1.1
+  version: 11.5.2
   condition: jackett.enabled
 - name: radarr
   repository: https://k8s-at-home.com/charts/
-  version: 15.0.3
+  version: 16.2.3
   condition: radarr.enabled
 - name: sonarr
-  version: 15.1.0
+  version: 16.2.3
   repository: https://k8s-at-home.com/charts/
   condition: sonarr.enabled
 - name: transmission
