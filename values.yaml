@@ -36,7 +36,6 @@ plex:
     PLEX_PREFERENCE_1: "FriendlyName=Plex"
   image:
     repository: ghcr.io/k8s-at-home/plex
-    tag: v1.25.8.5663-e071c3d62@sha256:407b85efc4c812e404d239d2e031651954dd4543b1d4031c2025f54c59bc0c1d
     pullPolicy: Always
   serviceAccount:
     create: true
@@ -64,16 +63,20 @@ plex:
       enabled: true
       existingClaim: plex-config
       skipuninstall: true
-    series:
+    media:
       enabled: true
-      type: pvc
-      mountPath: /series
-      existingClaim: series
-    movies:
+      type: nfs
+      mountOptions:
+      - nfsvers=4.1
+      path: /volumeUSB1/usbshare
+      server: 192.168.1.89
+    hardware-accelerator:
       enabled: true
-      type: pvc
-      mountPath: /movies
-      existingClaim: movies    
+      type: hostPath
+      hostPath: /dev
+      subPath:
+      - path: .
+        mountPath: /dev
 
 jackett:
   enabled: true
@@ -115,9 +118,6 @@ jackett:
       enabled: true
       existingClaim: jackett-config
       skipuninstall: true
-    torrentblackhole:
-      enabled: true
-      existingClaim: watch
 
 radarr:
   enabled: true
@@ -161,12 +161,11 @@ radarr:
       skipuninstall: true
     media:
       enabled: true
-      existingClaim: movies
-      mountPath: /media
-    downloads:
-      enabled: true
-      existingClaim: downloads
-      mountPath: /downloads
+      type: nfs
+      mountOptions:
+      - nfsvers=4.1
+      path: /volumeUSB1/usbshare
+      server: 192.168.1.89
 
 sonarr:
   enabled: true
@@ -210,12 +209,11 @@ sonarr:
       skipuninstall: true
     media:
       enabled: true
-      existingClaim: series
-      mountPath: /media
-    downloads:
-      enabled: true
-      existingClaim: downloads
-      mountPath: /downloads
+      type: nfs
+      mountOptions:
+      - nfsvers=4.1
+      path: /volumeUSB1/usbshare
+      server: 192.168.1.89
 
 transmission:
   enabled: true
@@ -227,14 +225,16 @@ transmission:
     UMASK: 022
     PUID: 1001
     PGID: 1001
-    TRANSMISSION_DOWNLOAD_DIR: "/downloads"
+    TRANSMISSION_DOWNLOAD_DIR: "/media/downloads"
+    TRANSMISSION_DOWNLOAD_QUEUE_SIZE: 25
+    TRANSMISSION_INCOMPLETE_DIR: "/media/incomplete-downloads"
     TRANSMISSION_INCOMPLETE_DIR_ENABLED: false
-    TRANSMISSION_WATCH_DIR: "/watch"
+    TRANSMISSION_WATCH_DIR: "/media/watch"
     TRANSMISSION_WATCH_DIR_ENABLED: true
     TRANSMISSION_WEB_HOME: "/web"
     TRANSMISSION_QUEUE_STALLED_ENABLED: true
     TRANSMISSION_QUEUE_STALLED_MINUTES: 30
-    TRANSMISSION_RATIO_LIMIT: 2
+    TRANSMISSION_RATIO_LIMIT: 20
     TRANSMISSION_RATIO_LIMIT_ENABLED: true
     TRANSMISSION_RENAME_PARTIAL_FILES: true
     TRANSMISSION_SCRAPE_PAUSED_TORRENTS_ENABLED: true
@@ -270,9 +270,10 @@ transmission:
       enabled: true
       existingClaim: transmission-config
       skipuninstall: true
-    downloads:
+    media:
       enabled: true
-      existingClaim: downloads
-    watch:
-      enabled: true
-      existingClaim: watch
+      type: nfs
+      mountOptions:
+      - nfsvers=4.1
+      path: /volumeUSB1/usbshare
+      server: 192.168.1.89
